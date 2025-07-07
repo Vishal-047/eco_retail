@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Container,
@@ -11,6 +11,9 @@ import {
   Paper,
   Chip,
   Stack,
+  Fab,
+  Drawer,
+  Tooltip,
 } from '@mui/material';
 import {
   Park,
@@ -19,22 +22,27 @@ import {
   TrendingUp,
   Visibility,
   Star,
+  Park as EcoIcon,
 } from '@mui/icons-material';
+import ChatbotWidget from '../components/ChatbotWidget';
+import Link from 'next/link';
 
 // Removed: import { useRouter } from 'next/navigation'; - This was causing the error.
 
 export default function App() {
   // This environment doesn't support Next.js routing, so we'll use placeholder actions.
   // const router = useRouter(); // Removed this line.
+  const [chatOpen, setChatOpen] = useState(false);
 
   const features = [
     {
       icon: <Park sx={{ fontSize: 40, color: 'primary.main' }} />,
       title: 'Carbon Emission Tracking',
       description: 'Track CO₂ emissions for every product and make informed sustainable choices.',
-      action: () => console.log('Navigate to /products'),
+      action: undefined,
       actionText: 'View Products',
       color: '#2e7d32',
+      href: '/products',
     },
     {
       icon: <LocalShipping sx={{ fontSize: 40, color: 'primary.main' }} />,
@@ -220,22 +228,42 @@ export default function App() {
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                     {feature.description}
                   </Typography>
-                  <Button
-                    variant="outlined"
-                    size="medium"
-                    onClick={feature.action}
-                    sx={{
-                      borderColor: feature.color,
-                      color: feature.color,
-                      fontWeight: 'bold',
-                      '&:hover': {
+                  {feature.href ? (
+                    <Button
+                      component={Link}
+                      href={feature.href}
+                      variant="outlined"
+                      size="medium"
+                      sx={{
                         borderColor: feature.color,
-                        backgroundColor: `${feature.color}10`,
-                      },
-                    }}
-                  >
-                    {feature.actionText}
-                  </Button>
+                        color: feature.color,
+                        fontWeight: 'bold',
+                        '&:hover': {
+                          borderColor: feature.color,
+                          backgroundColor: `${feature.color}10`,
+                        },
+                      }}
+                    >
+                      {feature.actionText}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      size="medium"
+                      onClick={feature.action}
+                      sx={{
+                        borderColor: feature.color,
+                        color: feature.color,
+                        fontWeight: 'bold',
+                        '&:hover': {
+                          borderColor: feature.color,
+                          backgroundColor: `${feature.color}10`,
+                        },
+                      }}
+                    >
+                      {feature.actionText}
+                    </Button>
+                  )}
                 </Card>
               </Box>
             ))}
@@ -369,6 +397,54 @@ export default function App() {
           </CardContent>
         </Card>
       </Container>
+
+      {/* Floating Chatbot FAB */}
+      <Tooltip title="Chat with EcoBot!" arrow>
+        <Fab
+          color="success"
+          sx={{
+            position: 'fixed',
+            bottom: 32,
+            right: 32,
+            zIndex: 2000,
+            boxShadow: 6,
+            width: 64,
+            height: 64
+          }}
+          onClick={() => setChatOpen(true)}
+        >
+          <EcoIcon sx={{ fontSize: 36 }} />
+        </Fab>
+      </Tooltip>
+
+      {/* Chatbot Drawer */}
+      <Drawer
+        anchor="right"
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
+        PaperProps={{
+          sx: {
+            width: { xs: '100%', sm: 520 },
+            maxWidth: '100vw',
+            boxShadow: 8,
+            borderTopLeftRadius: 3,
+            borderBottomLeftRadius: 3,
+            overflow: 'visible',
+            background: 'transparent'
+          }
+        }}
+      >
+        <Box sx={{ position: 'relative', height: '100%', bgcolor: 'transparent' }}>
+          <Box sx={{ position: 'absolute', top: 16, right: 16, zIndex: 10 }}>
+            <Fab size="small" color="error" onClick={() => setChatOpen(false)}>
+              ×
+            </Fab>
+          </Box>
+          <Box sx={{ pt: 6, px: 0, height: '100%' }}>
+            <ChatbotWidget minimal={true} />
+          </Box>
+        </Box>
+      </Drawer>
     </>
   );
 }

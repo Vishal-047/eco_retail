@@ -32,6 +32,7 @@ import {
   Calculate,
   LocalShipping,
   Recycling,
+  SmartToy,
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -68,6 +69,7 @@ const Navbar: React.FC = () => {
     { text: 'Calculator', path: '/calculator', icon: <Calculate /> },
     { text: 'Delivery', path: '/delivery', icon: <LocalShipping /> },
     { text: 'Packaging', path: '/packaging', icon: <Recycling /> },
+    { text: 'EcoBot', path: '/chatbot', icon: <SmartToy /> },
   ];
 
   const drawer = (
