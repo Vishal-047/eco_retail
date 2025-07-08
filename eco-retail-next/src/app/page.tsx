@@ -56,9 +56,9 @@ export default function App() {
       icon: <Recycling sx={{ fontSize: 40, color: 'primary.main' }} />,
       title: 'Smart Packaging',
       description: 'Get recommendations for eco-friendly packaging materials.',
-      action: () => console.log('Navigate to /packaging'),
       actionText: 'Explore Packaging',
       color: '#388e3c',
+      href: '/packaging',
     },
     {
       icon: <TrendingUp sx={{ fontSize: 40, color: 'primary.main' }} />,
