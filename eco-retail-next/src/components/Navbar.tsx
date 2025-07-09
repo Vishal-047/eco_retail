@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -19,6 +19,7 @@ import {
   ListItemText,
   Divider,
   Container,
+  Tooltip,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -33,7 +34,10 @@ import {
   LocalShipping,
   Recycling,
   SmartToy,
+  TrendingUp,
 } from '@mui/icons-material';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -44,6 +48,19 @@ const Navbar: React.FC = () => {
 
   // Mock user state - in real app, this would come from context/state management
   const [user, setUser] = useState<null | { username: string; greenPoints: number }>(null);
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('theme') === 'dark';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      document.body.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+      localStorage.setItem('theme', darkMode ? 'dark' : 'light');
+    }
+  }, [darkMode]);
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -65,12 +82,13 @@ const Navbar: React.FC = () => {
 
   const navigationItems = [
     { text: 'Home', path: '/', icon: <Park /> },
-    { text: 'Products', path: '/products', icon: <ShoppingCart /> },
     { text: 'Calculator', path: '/calculator', icon: <Calculate /> },
-    { text: 'Delivery', path: '/delivery', icon: <LocalShipping /> },
-    { text: 'Packaging', path: '/packaging', icon: <Recycling /> },
-    { text: 'EcoBot', path: '/chatbot', icon: <SmartToy /> },
+    { text: 'Suppliers', path: '/suppliers', icon: <Recycling /> },
+    { text: 'News', path: '/news', icon: <TrendingUp /> },
+    { text: 'Bulk Analysis', path: '/bulk-analysis', icon: <TrendingUp /> },
+    { text: 'Eco Advisor', path: '/chatbot', icon: <SmartToy /> },
   ];
+  
 
   const drawer = (
     <Box>
@@ -174,6 +192,32 @@ const Navbar: React.FC = () => {
           {/* Spacer */}
           <Box sx={{ flexGrow: 1 }} />
 
+          {/* Redeem Points Button */}
+          <Tooltip title="Redeem Points">
+            <Button
+              color="primary"
+              variant="contained"
+              sx={{
+                borderRadius: '50%',
+                minWidth: 48,
+                width: 48,
+                height: 48,
+                p: 0,
+                mr: 1,
+                boxShadow: 3,
+                fontSize: 24,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'linear-gradient(135deg, #2196f3 60%, #00e5ff 100%)',
+                '&:hover': { background: 'linear-gradient(135deg, #1976d2 60%, #00b8d4 100%)' }
+              }}
+              onClick={() => router.push('/dashboard')}
+              aria-label="Redeem Points"
+            >
+              <span role="img" aria-label="diamond">💎</span>
+            </Button>
+          </Tooltip>
           {/* User Menu */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             {user ? (

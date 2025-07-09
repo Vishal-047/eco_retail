@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -23,6 +23,9 @@ import {
   Visibility,
   Star,
   Park as EcoIcon,
+  Nature,
+  Inventory,
+  Store,
 } from '@mui/icons-material';
 import ChatbotWidget from '../components/ChatbotWidget';
 import Link from 'next/link';
@@ -33,6 +36,24 @@ export default function App() {
   // This environment doesn't support Next.js routing, so we'll use placeholder actions.
   // const router = useRouter(); // Removed this line.
   const [chatOpen, setChatOpen] = useState(false);
+  const [tips, setTips] = useState<string[]>([]);
+  const [tipsLoading, setTipsLoading] = useState(false);
+  const [tipsError, setTipsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setTipsLoading(true);
+    setTipsError(null);
+    fetch('/api/sustainability-tips')
+      .then(res => res.json())
+      .then(data => {
+        setTips(data.tips || []);
+        setTipsLoading(false);
+      })
+      .catch(err => {
+        setTipsError('Failed to load tips');
+        setTipsLoading(false);
+      });
+  }, []);
 
   const features = [
     {
@@ -122,20 +143,40 @@ export default function App() {
               </Typography>
               <Box sx={{ display: 'flex', gap: 2, justifyContent: { xs: 'center', md: 'flex-start' } }}>
                 <Button
+                  component={Link}
+                  href="/products"
                   variant="contained"
                   size="large"
                   sx={{ bgcolor: 'white', color: '#388e3c', fontWeight: 'bold', boxShadow: 2, '&:hover': { bgcolor: '#e0f2f1' } }}
-                  onClick={() => handleNavigation('/products')}
                 >
                   Explore Products
                 </Button>
                 <Button
+                  component={Link}
+                  href="/calculator"
                   variant="outlined"
                   size="large"
                   sx={{ color: 'white', borderColor: 'white', fontWeight: 'bold', '&:hover': { bgcolor: '#e0f2f1', color: '#388e3c', borderColor: '#388e3c' } }}
-                  onClick={() => handleNavigation('/calculator')}
                 >
                   Calculate Emissions
+                </Button>
+                <Button
+                  component={Link}
+                  href="/compare"
+                  variant="outlined"
+                  size="large"
+                  sx={{ color: 'white', borderColor: 'white', fontWeight: 'bold', '&:hover': { bgcolor: '#e0f2f1', color: '#388e3c', borderColor: '#388e3c' } }}
+                >
+                  Compare Products
+                </Button>
+                <Button
+                  component={Link}
+                  href="/community"
+                  variant="outlined"
+                  size="large"
+                  sx={{ color: 'white', borderColor: 'white', fontWeight: 'bold', '&:hover': { bgcolor: '#e0f2f1', color: '#388e3c', borderColor: '#388e3c' } }}
+                >
+                  Community
                 </Button>
               </Box>
             </Box>
@@ -368,6 +409,35 @@ export default function App() {
         </Container>
       </Paper>
 
+      {/* Sustainability Tips Section */}
+      <Paper sx={{ py: 6, mb: 6, bgcolor: 'grey.50' }}>
+        <Container maxWidth="md">
+          <Typography variant="h4" component="h2" textAlign="center" gutterBottom sx={{ fontWeight: 'bold', color: '#388e3c' }}>
+            How to Become More Sustainable
+          </Typography>
+          <Typography variant="body1" textAlign="center" color="text.secondary" paragraph>
+            Practical tips for reducing emissions and improving sustainability across your business.
+          </Typography>
+          <Box sx={{ maxWidth: 600, mx: 'auto' }}>
+            {tipsLoading && <Typography>Loading tips...</Typography>}
+            {tipsError && <Typography color="error">{tipsError}</Typography>}
+            {!tipsLoading && !tipsError && (
+              <ul style={{ fontSize: '1.1rem', color: '#333', paddingLeft: 24 }}>
+                {tips.map((tip, i) => (
+                  <li key={i} style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
+                    {i === 0 && <Nature sx={{ color: '#388e3c', mr: 1 }} />}
+                    {i === 1 && <Inventory sx={{ color: '#388e3c', mr: 1 }} />}
+                    {i === 2 && <LocalShipping sx={{ color: '#388e3c', mr: 1 }} />}
+                    {i === 3 && <Store sx={{ color: '#388e3c', mr: 1 }} />}
+                    <span>{tip}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Box>
+        </Container>
+      </Paper>
+
       {/* CTA Section */}
       <Container maxWidth="md" sx={{ my: 6 }}>
         <Card sx={{ textAlign: 'center', py: 4, borderRadius: 3, boxShadow: 2 }}>
@@ -380,16 +450,18 @@ export default function App() {
             </Typography>
             <Stack direction="row" spacing={2} justifyContent="center">
               <Button
+                component={Link}
+                href="/register"
                 variant="contained"
                 size="large"
-                onClick={() => handleNavigation('/register')}
               >
                 Get Started
               </Button>
               <Button
+                component={Link}
+                href="/products"
                 variant="outlined"
                 size="large"
-                onClick={() => handleNavigation('/products')}
               >
                 Browse Products
               </Button>
@@ -414,6 +486,24 @@ export default function App() {
           onClick={() => setChatOpen(true)}
         >
           <EcoIcon sx={{ fontSize: 36 }} />
+        </Fab>
+      </Tooltip>
+      <Tooltip title="Redeem Points" arrow>
+        <Fab
+          color="primary"
+          sx={{
+            position: 'fixed',
+            bottom: 32,
+            right: 112,
+            zIndex: 2000,
+            boxShadow: 6,
+            width: 64,
+            height: 64
+          }}
+          component={Link}
+          href="/dashboard"
+        >
+          💎
         </Fab>
       </Tooltip>
 
@@ -448,3 +538,4 @@ export default function App() {
     </>
   );
 }
+

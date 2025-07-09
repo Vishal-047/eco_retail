@@ -1,13 +1,12 @@
 "use client";
-
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Box, 
-  Container, 
-  Typography, 
-  Paper, 
-  TextField, 
-  IconButton, 
+import {
+  Box,
+  Container,
+  Typography,
+  Paper,
+  TextField,
+  IconButton,
   Avatar,
   Chip,
   Fade,
@@ -24,7 +23,17 @@ import {
   Card,
   CardContent,
   Alert,
-  Snackbar
+  Snackbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Checkbox,
+  FormControlLabel,
+  FormGroup,
+  Select,
+  MenuItem,
+  LinearProgress
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -38,8 +47,13 @@ import {
   Favorite as HeartIcon,
   Share as ShareIcon,
   Info as InfoIcon,
-  KeyboardArrowUp as ArrowUpIcon
+  KeyboardArrowUp as ArrowUpIcon,
+  Celebration as CelebrationIcon,
+  CheckCircle as CheckCircleIcon,
+  RadioButtonUnchecked as RadioButtonUncheckedIcon,
+  EmojiNature as EmojiNatureIcon
 } from '@mui/icons-material';
+import CloseIcon from '@mui/icons-material/Close';
 import ChatMessage from '../../components/ChatMessage';
 import TypingIndicator from '../../components/TypingIndicator';
 import CommunityDIY from '../../components/CommunityDIY';
@@ -84,12 +98,82 @@ const quickActions = [
   }
 ];
 
+const SUSTAINABILITY_GOALS = [
+  'Reduce waste',
+  'Lower carbon emissions',
+  'Eco-friendly products',
+  'Sustainable packaging',
+  'Green delivery',
+  'Save energy',
+  'Educate others',
+  'Other',
+];
+
+const PRODUCT_TYPES = [
+  'Clothing',
+  'Electronics',
+  'Food & Beverage',
+  'Home Goods',
+  'Services',
+  'Other',
+];
+
+function getOnboarding() {
+  if (typeof window === 'undefined') return null;
+  try {
+    return JSON.parse(localStorage.getItem('ecoAdvisorOnboarding') || 'null');
+  } catch {
+    return null;
+  }
+}
+function setOnboarding(data: any) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('ecoAdvisorOnboarding', JSON.stringify(data));
+}
+function clearOnboarding() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('ecoAdvisorOnboarding');
+  localStorage.removeItem('ecoAdvisorRoadmap');
+}
+function getRoadmap() {
+  if (typeof window === 'undefined') return null;
+  try {
+    return JSON.parse(localStorage.getItem('ecoAdvisorRoadmap') || 'null');
+  } catch {
+    return null;
+  }
+}
+function setRoadmap(data: any) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('ecoAdvisorRoadmap', JSON.stringify(data));
+}
+
+// Helper to split roadmap steps into individual actions
+function splitRoadmapSteps(roadmap: any[]) {
+  if (!roadmap) return [];
+  const actions: { text: string, done: boolean }[] = [];
+  roadmap.forEach((step: any) => {
+    // Split on numbered sub-steps (e.g., '1. ...; 2. ...;')
+    const parts = step.text
+      ? step.text.split(/\d+\.\s?/).filter(Boolean).flatMap(s => s.split(';'))
+      : [];
+    parts.forEach((p: string) => {
+      let text = p.trim().replace(/^[-–•]+\s*/, '');
+      // Remove leading/trailing asterisks and markdown bold/italic
+      text = text.replace(/^\*+|\*+$/g, '').replace(/^_+|_+$/g, '');
+      text = text.replace(/\*\*/g, '').replace(/__/g, '');
+      if (text) actions.push({ text, done: step.done });
+    });
+  });
+  return actions;
+}
+
 export default function ChatbotPage() {
   const [mounted, setMounted] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hi! I'm EcoBot 🌱, your sustainability advisor. I can help you with eco-friendly tips, carbon footprint calculations, delivery impact analysis, and DIY waste projects. What would you like to know?",
+      text: "Hi! I'm your Eco Advisor 🌱. I can help you with eco-friendly tips, carbon footprint calculations, delivery impact analysis, and DIY waste projects. What would you like to know?",
       sender: 'bot',
       timestamp: new Date('2024-01-01T00:00:00Z') // Static timestamp to prevent hydration mismatch
     }
@@ -103,6 +187,33 @@ export default function ChatbotPage() {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'info' | 'warning' | 'error'>('success');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [onboarding, setOnboardingState] = useState<any>(getOnboarding());
+  const [onboardingOpen, setOnboardingOpen] = useState(!getOnboarding());
+  const [userType, setUserType] = useState('individual');
+  const [productType, setProductType] = useState('Clothing');
+  const [goals, setGoals] = useState<string[]>([]);
+  const [roadmap, setRoadmapState] = useState<any>(getRoadmap());
+  const [roadmapLoading, setRoadmapLoading] = useState(false);
+  const roadmapActions = roadmap ? splitRoadmapSteps(roadmap) : [];
+  const roadmapProgress = roadmapActions.length > 0 ? Math.round(100 * roadmapActions.filter((s: any) => s.done).length / roadmapActions.length) : 0;
+  const allDone = roadmapActions.length > 0 && roadmapActions.every((s: any) => s.done);
+  const handleToggleAction = (idx: number) => {
+    // Map back to original roadmap structure
+    let count = 0;
+    const updated = roadmap.map((step: any) => {
+      // Split as above
+      const parts = step.text ? step.text.split(/\d+\.\s?/).filter(Boolean).flatMap(s => s.split(';')) : [];
+      const newDone = parts.map((p: string) => {
+        const text = p.trim().replace(/^[-–•]+\s*/, '');
+        if (!text) return false;
+        return count++ === idx ? !roadmapActions[idx].done : roadmapActions[count - 1].done;
+      });
+      // If any sub-action is done, mark the step as done
+      return { ...step, done: newDone.every(Boolean) };
+    });
+    setRoadmap(updated);
+  };
+  const [showOnboardingBanner, setShowOnboardingBanner] = useState(!onboarding);
 
   useEffect(() => {
     setMounted(true);
@@ -195,6 +306,52 @@ export default function ChatbotPage() {
     );
   };
 
+  // Onboarding handlers
+  const handleGoalChange = (goal: string) => {
+    setGoals(g => g.includes(goal) ? g.filter(x => x !== goal) : [...g, goal]);
+  };
+  const handleOnboardingSubmit = () => {
+    const data = { userType, productType, goals };
+    setOnboarding(data);
+    setOnboardingState(data);
+    setOnboardingOpen(false);
+  };
+  const handleRestartOnboarding = () => {
+    clearOnboarding();
+    setOnboardingState(null);
+    setRoadmapState(null);
+    setOnboardingOpen(true);
+  };
+  const handleCancelOnboarding = () => {
+    setOnboardingOpen(false);
+  };
+
+  // Roadmap fetch
+  const handleGetRoadmap = async () => {
+    setRoadmapLoading(true);
+    try {
+      const res = await fetch('/api/eco-advisor-roadmap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userType: onboarding.userType, productType: onboarding.productType, goals: onboarding.goals })
+      });
+      const data = await res.json();
+      if (data.roadmap) {
+        const steps = data.roadmap.map((step: string) => ({ text: step, done: false }));
+        setRoadmap(steps);
+        setRoadmapState(steps);
+      }
+    } catch {
+      showSnackbar('Failed to fetch roadmap', 'error');
+    } finally {
+      setRoadmapLoading(false);
+    }
+  };
+  const handleToggleStep = (idx: number) => {
+    const updated = roadmap.map((s: any, i: number) => i === idx ? { ...s, done: !s.done } : s);
+    setRoadmap(updated);
+  };
+
   if (!mounted) {
     return (
       <Container maxWidth="md" sx={{ py: 4, minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -205,6 +362,130 @@ export default function ChatbotPage() {
 
   return (
     <Container maxWidth="md" sx={{ py: 4, minHeight: '100vh' }}>
+      {/* Onboarding Dialog */}
+      <Dialog open={onboardingOpen} disableEscapeKeyDown fullWidth maxWidth="xs" TransitionProps={{ appear: true }}>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <EmojiNatureIcon color="success" sx={{ fontSize: 32 }} />
+          Welcome to Eco Advisor!
+        </DialogTitle>
+        <DialogContent sx={{ pt: 1, pb: 2 }}>
+          <Typography sx={{ mb: 2, fontSize: 18, fontWeight: 500 }}>Let’s personalize your sustainability journey.</Typography>
+          <Typography variant="subtitle2" sx={{ mt: 1, mb: 0.5 }}>I am a...</Typography>
+          <Select
+            value={userType}
+            onChange={e => setUserType(e.target.value as string)}
+            fullWidth
+            sx={{ mb: 2 }}
+          >
+            <MenuItem value="individual">Individual</MenuItem>
+            <MenuItem value="business">Business</MenuItem>
+          </Select>
+          <Typography variant="subtitle2" sx={{ mt: 1, mb: 0.5 }}>What type of products do you focus on?</Typography>
+          <Select
+            value={productType}
+            onChange={e => setProductType(e.target.value as string)}
+            fullWidth
+            sx={{ mb: 2 }}
+          >
+            {PRODUCT_TYPES.map(type => (
+              <MenuItem key={type} value={type}>{type}</MenuItem>
+            ))}
+          </Select>
+          <Typography variant="subtitle2" sx={{ mt: 1, mb: 0.5 }}>My main sustainability goals:</Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+            Select all that apply
+          </Typography>
+          <FormGroup sx={{ mb: 2 }}>
+            {SUSTAINABILITY_GOALS.map(goal => (
+              <FormControlLabel
+                key={goal}
+                control={<Checkbox checked={goals.includes(goal)} onChange={() => handleGoalChange(goal)} />}
+                label={goal}
+              />
+            ))}
+          </FormGroup>
+        </DialogContent>
+        <DialogActions sx={{ pb: 2, pr: 3 }}>
+          <Button onClick={handleCancelOnboarding} color="inherit" sx={{ mr: 1 }}>
+            Cancel
+          </Button>
+          <Button onClick={handleOnboardingSubmit} variant="contained" color="success" size="large" disabled={goals.length === 0} sx={{ px: 4, fontWeight: 600 }}>
+            Continue
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Onboarding Banner */}
+      {!onboarding && showOnboardingBanner && (
+        <Paper elevation={2} sx={{ p: 2, mb: 3, bgcolor: 'warning.50', display: 'flex', alignItems: 'center', gap: 2, border: '1px solid', borderColor: 'warning.light' }}>
+          <Typography variant="body1" sx={{ flexGrow: 1 }}>
+            Want tailored sustainability advice? <b>Personalize your Eco Advisor experience.</b>
+          </Typography>
+          <Button variant="contained" color="success" size="small" onClick={() => { setOnboardingOpen(true); setShowOnboardingBanner(false); }}>
+            Personalize Now
+          </Button>
+          <IconButton size="small" onClick={() => setShowOnboardingBanner(false)}><CloseIcon /></IconButton>
+        </Paper>
+      )}
+
+      {/* Personalized Greeting & Plan */}
+      {onboarding && (
+        <Box sx={{ mb: 3, mt: 1 }}>
+          <Paper elevation={3} sx={{ p: 3, bgcolor: 'success.50', display: 'flex', alignItems: 'center', gap: 3, borderRadius: 3, boxShadow: 4, transition: 'box-shadow 0.3s' }}>
+            <CelebrationIcon color="warning" sx={{ fontSize: 40, mr: 1 }} />
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
+                Welcome, {onboarding.userType === 'business' ? 'Eco-Minded Business' : 'Eco Hero'}!
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 1 }}>
+                <b>Your goals:</b> {onboarding.goals.join(', ')}
+              </Typography>
+              <Button onClick={handleRestartOnboarding} size="small" color="info" sx={{ mt: 1, textTransform: 'none', fontWeight: 400, px: 0, minWidth: 0 }}>
+                Restart Onboarding
+              </Button>
+            </Box>
+            <Box sx={{ flexGrow: 1 }} />
+            <Button
+              variant="contained"
+              color="success"
+              onClick={handleGetRoadmap}
+              disabled={roadmapLoading}
+              size="large"
+              sx={{ fontWeight: 600, px: 4, boxShadow: 2 }}
+            >
+              {roadmapLoading ? 'Loading...' : 'Get Personalized Plan'}
+            </Button>
+          </Paper>
+        </Box>
+      )}
+
+      {/* Roadmap Checklist */}
+      {roadmap && (
+        <Paper elevation={4} sx={{ p: 3, mb: 3, bgcolor: 'success.100', borderRadius: 3, boxShadow: 6, transition: 'box-shadow 0.3s' }}>
+          <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <SparkleIcon color="warning" /> Your Sustainability Roadmap
+          </Typography>
+          <LinearProgress variant="determinate" value={roadmapProgress} sx={{ height: 10, borderRadius: 5, mb: 2, bgcolor: 'success.200' }} />
+          <FormGroup>
+            {roadmapActions.map((action: any, idx: number) => (
+              <FormControlLabel
+                key={idx}
+                control={action.done ? <CheckCircleIcon color="success" sx={{ transition: 'all 0.2s', fontSize: 28 }} /> : <RadioButtonUncheckedIcon color="disabled" sx={{ fontSize: 28 }} />}
+                label={<span style={{ textDecoration: action.done ? 'line-through' : 'none', color: action.done ? '#388e3c' : undefined, fontWeight: action.done ? 500 : 400, transition: 'color 0.2s' }}>{action.text}</span>}
+                onClick={() => handleToggleAction(idx)}
+                sx={{ mb: 1.5, transition: 'background 0.2s', borderRadius: 2, alignItems: 'flex-start', '&:hover': { bgcolor: 'success.50' } }}
+              />
+            ))}
+          </FormGroup>
+          {allDone && (
+            <Box sx={{ mt: 2, textAlign: 'center' }}>
+              <CelebrationIcon color="warning" sx={{ fontSize: 40, mb: 1 }} />
+              <Typography variant="h6" color="success.main">Congratulations! You’ve completed your roadmap! 🎉</Typography>
+            </Box>
+          )}
+        </Paper>
+      )}
+
       {/* Header */}
       <Grow in={true} timeout={500}>
         <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', mb: 2, flexDirection: 'row' }}>
@@ -227,7 +508,7 @@ export default function ChatbotPage() {
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
             <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
               <Typography variant="h4" component="h1" sx={{ color: 'success.main', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
-                EcoBot
+                Eco Advisor
               </Typography>
               <Typography variant="subtitle1" color="text.secondary" sx={{ whiteSpace: 'nowrap', fontSize: 20, fontWeight: 400 }}>
                 Your intelligent advisor for eco-friendly living and carbon footprint insights
