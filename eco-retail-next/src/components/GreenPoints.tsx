@@ -18,7 +18,9 @@ import {
   DialogActions,
   TextField,
   Grid,
-  Paper
+  Paper,
+  Alert,
+  MenuItem
 } from '@mui/material';
 import {
   Park as EcoIcon,
@@ -28,7 +30,8 @@ import {
   Add as AddIcon,
   LocalShipping as DeliveryIcon,
   Recycling as RecyclingIcon,
-  Lightbulb as LightbulbIcon
+  Lightbulb as LightbulbIcon,
+  Share as ShareIcon
 } from '@mui/icons-material';
 
 interface User {
@@ -38,6 +41,7 @@ interface User {
   level: number;
   avatar: string;
   recentActions: Action[];
+  discounts?: string[]; // Added for redemption
 }
 
 interface Action {
@@ -137,6 +141,13 @@ export default function GreenPoints() {
     type: 'chat_question',
     description: ''
   });
+  const [redeemLoading, setRedeemLoading] = useState(false);
+  const [redeemMsg, setRedeemMsg] = useState('');
+  const [openSocialDialog, setOpenSocialDialog] = useState(false);
+  const [socialLink, setSocialLink] = useState('');
+  const [socialDesc, setSocialDesc] = useState('');
+  const [socialLoading, setSocialLoading] = useState(false);
+  const [socialMsg, setSocialMsg] = useState('');
 
   const sortedUsers = [...users].sort((a, b) => b.points - a.points);
   const userRank = sortedUsers.findIndex(user => user.id === currentUser.id) + 1;
@@ -242,6 +253,56 @@ export default function GreenPoints() {
                   Add Action
                 </Button>
               </Box>
+              <Box sx={{ textAlign: 'center', mt: 3 }}>
+                {/* Redemption UI */}
+                <Typography variant="h6" sx={{ mb: 1 }}>Redeem Points</Typography>
+                <Button
+                  variant="contained"
+                  color="success"
+                  disabled={currentUser.points < 100}
+                  onClick={async () => {
+                    setRedeemLoading(true);
+                    setRedeemMsg('');
+                    try {
+                      // Replace with real userId if available
+                      const res = await fetch('/api/user-rewards/redeem', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: currentUser.id })
+                      });
+                      const data = await res.json();
+                      if (!res.ok) throw new Error(data.message || 'Redemption failed');
+                      setRedeemMsg(data.message || 'Redeemed!');
+                      setCurrentUser((u) => ({ ...u, points: data.points, discounts: data.discounts || [] }));
+                    } catch (err) {
+                      setRedeemMsg(err.message || 'Redemption failed');
+                    }
+                    setRedeemLoading(false);
+                  }}
+                  sx={{ mt: 1, mb: 1 }}
+                >
+                  {redeemLoading ? 'Redeeming...' : 'Redeem 100 Points for Discount'}
+                </Button>
+                {redeemMsg && <Alert severity="info" sx={{ mt: 1 }}>{redeemMsg}</Alert>}
+                {currentUser.discounts && currentUser.discounts.length > 0 && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2">Your Discounts:</Typography>
+                    {currentUser.discounts.map((d, i) => (
+                      <Chip key={i} label={d} color="primary" sx={{ m: 0.5 }} />
+                    ))}
+                  </Box>
+                )}
+              </Box>
+              <Box sx={{ textAlign: 'center', mt: 3 }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<ShareIcon />}
+                  onClick={() => setOpenSocialDialog(true)}
+                  sx={{ mb: 2 }}
+                >
+                  Submit Social Media Proof
+                </Button>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
@@ -285,16 +346,12 @@ export default function GreenPoints() {
                         </Box>
                       }
                       secondary={
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {user.points} points • Level {user.level} • {getLevelTitle(user.level)}
-                          </Typography>
+                        <span>
+                          {user.points} points • Level {user.level} • {getLevelTitle(user.level)}
                           {user.recentActions.length > 0 && (
-                            <Typography variant="caption" color="text.secondary">
-                              Recent: {user.recentActions[0].description}
-                            </Typography>
+                            <><br /><small>Recent: {user.recentActions[0].description}</small></>
                           )}
-                        </Box>
+                        </span>
                       }
                     />
                   </ListItem>
@@ -350,9 +407,9 @@ export default function GreenPoints() {
             sx={{ mb: 2, mt: 1 }}
           >
             {Object.entries(actionTypes).map(([key, action]) => (
-              <option key={key} value={key}>
+              <MenuItem key={key} value={key}>
                 {action.description} (+{action.points} pts)
-              </option>
+              </MenuItem>
             ))}
           </TextField>
           <TextField
@@ -371,6 +428,68 @@ export default function GreenPoints() {
             sx={{ bgcolor: 'success.main' }}
           >
             Add Action
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={openSocialDialog} onClose={() => setOpenSocialDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Submit Social Media Proof</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="Social Media Link"
+            value={socialLink}
+            onChange={e => setSocialLink(e.target.value)}
+            sx={{ mb: 2 }}
+            placeholder="Paste your Instagram, Twitter, or Facebook post link"
+          />
+          <TextField
+            fullWidth
+            label="Description (optional)"
+            value={socialDesc}
+            onChange={e => setSocialDesc(e.target.value)}
+            placeholder="Describe your eco-friendly activity..."
+          />
+          {socialMsg && <Alert severity="info" sx={{ mt: 2 }}>{socialMsg}</Alert>}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenSocialDialog(false)}>Cancel</Button>
+          <Button
+            onClick={async () => {
+              setSocialLoading(true);
+              setSocialMsg('');
+              try {
+                const res = await fetch('/api/user-rewards', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    userId: currentUser.id,
+                    type: 'social',
+                    description: socialDesc,
+                    proofUrl: socialLink
+                  })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || data.message || 'Submission failed');
+                setSocialMsg('Submitted for review! Points will be awarded after approval.');
+                setOpenSocialDialog(false);
+                setSocialLink('');
+                setSocialDesc('');
+                // Optionally update activity list
+                setCurrentUser(u => ({ ...u, recentActions: [
+                  { id: Date.now().toString(), type: 'social', description: socialDesc, points: 0, timestamp: new Date(), icon: <ShareIcon /> },
+                  ...u.recentActions.slice(0, 4)
+                ] }));
+              } catch (err) {
+                setSocialMsg(err.message || 'Submission failed');
+              }
+              setSocialLoading(false);
+            }}
+            variant="contained"
+            color="success"
+            disabled={!socialLink || socialLoading}
+          >
+            {socialLoading ? 'Submitting...' : 'Submit'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -40,20 +40,62 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+// Remove import { useColorMode } from './ThemeProvider';
 
 const Navbar: React.FC = () => {
   const router = useRouter();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  // Remove: const { toggleColorMode, mode } = useColorMode();
 
   // Mock user state - in real app, this would come from context/state management
-  const [user, setUser] = useState<null | { username: string; greenPoints: number }>(null);
+  const [user, setUser] = useState<null | { name?: string; phone?: string; email?: string; greenPoints?: number }>(null);
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('theme') === 'dark';
     }
     return false;
   });
+
+  // Load user from localStorage on mount and fetch latest info from backend
+  useEffect(() => {
+    async function syncUser() {
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('ecoUser');
+        if (stored) {
+          const localUser = JSON.parse(stored);
+          // Fetch latest user info from backend
+          try {
+            const res = await fetch('/api/auth/me', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ phone: localUser.phone, email: localUser.email })
+            });
+            const data = await res.json();
+            console.log('Fetched user from /api/auth/me:', data);
+            if (data && !data.error) {
+              setUser(data);
+              localStorage.setItem('ecoUser', JSON.stringify(data));
+            } else {
+              setUser(localUser);
+            }
+          } catch (err) {
+            console.log('Error fetching user from /api/auth/me:', err);
+            setUser(localUser);
+          }
+        } else {
+          setUser(null);
+        }
+      }
+    }
+    syncUser();
+    window.addEventListener('storage', syncUser);
+    return () => window.removeEventListener('storage', syncUser);
+  }, []);
+
+  useEffect(() => {
+    console.log('Navbar user state:', user);
+  }, [user]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -83,6 +125,7 @@ const Navbar: React.FC = () => {
   const navigationItems = [
     { text: 'Home', path: '/', icon: <Park /> },
     { text: 'Calculator', path: '/calculator', icon: <Calculate /> },
+    { text: 'Green Delivery', path: '/delivery', icon: <LocalShipping /> },
     { text: 'Suppliers', path: '/suppliers', icon: <Recycling /> },
     { text: 'News', path: '/news', icon: <TrendingUp /> },
     { text: 'Bulk Analysis', path: '/bulk-analysis', icon: <TrendingUp /> },
@@ -218,16 +261,16 @@ const Navbar: React.FC = () => {
               <span role="img" aria-label="diamond">💎</span>
             </Button>
           </Tooltip>
+          {/* Remove Theme Toggle Button */}
           {/* User Menu */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             {user ? (
               <>
-                <Chip
-                  label={`${user.greenPoints} pts`}
-                  size="small"
-                  color="success"
-                  variant="outlined"
-                />
+                {user.name && (
+                  <Typography sx={{ fontWeight: 600, mr: 1 }}>
+                    {user.name}
+                  </Typography>
+                )}
                 <IconButton
                   onClick={handleProfileMenuOpen}
                   sx={{ p: 0 }}

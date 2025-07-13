@@ -12,6 +12,10 @@ export const products = [
     category: 'Clothing',
     image: 'https://via.placeholder.com/300x200/4caf50/ffffff?text=Organic+T-Shirt',
     breakdown: { manufacturing: 0.4, transport: 0.2, packaging: 0.2 },
+    expiryDate: '2024-06-10T23:59:59Z', // ISO string
+    discountPercent: 20,
+    barcode: '1234567890123',
+    discountedPrice: 23.99, // price after discount
   },
   {
     id: 2,
@@ -25,6 +29,10 @@ export const products = [
     category: 'Groceries',
     image: 'https://via.placeholder.com/300x200/4caf50/ffffff?text=Bamboo+Bottle',
     breakdown: { manufacturing: 0.1, transport: 0.1, packaging: 0.1 },
+    expiryDate: '2024-06-07T23:59:59Z',
+    discountPercent: 30,
+    barcode: '2345678901234',
+    discountedPrice: 17.49,
   },
   {
     id: 3,
@@ -38,6 +46,10 @@ export const products = [
     category: 'Electronics',
     image: 'https://via.placeholder.com/300x200/4caf50/ffffff?text=Solar+Bank',
     breakdown: { manufacturing: 0.7, transport: 0.3, packaging: 0.2 },
+    expiryDate: '2024-06-15T23:59:59Z',
+    discountPercent: 10,
+    barcode: '3456789012345',
+    discountedPrice: 44.99,
   },
   {
     id: 4,
@@ -51,6 +63,10 @@ export const products = [
     category: 'Stationery',
     image: 'https://via.placeholder.com/300x200/4caf50/ffffff?text=Recycled+Notebook',
     breakdown: { manufacturing: 0.05, transport: 0.03, packaging: 0.02 },
+    expiryDate: '2024-06-20T23:59:59Z',
+    discountPercent: 5,
+    barcode: '4567890123456',
+    discountedPrice: 12.34,
   },
   {
     id: 5,
@@ -64,6 +80,10 @@ export const products = [
     category: 'Furniture',
     image: 'https://via.placeholder.com/300x200/ef5350/ffffff?text=Plastic+Chair',
     breakdown: { manufacturing: 2.0, transport: 1.0, packaging: 0.5 },
+    expiryDate: '2024-06-25T23:59:59Z',
+    discountPercent: 15,
+    barcode: '5678901234567',
+    discountedPrice: 33.99,
   },
   {
     id: 6,
@@ -77,5 +97,9 @@ export const products = [
     category: 'Furniture',
     image: 'https://via.placeholder.com/300x200/4caf50/ffffff?text=Bamboo+Stool',
     breakdown: { manufacturing: 0.3, transport: 0.2, packaging: 0.2 },
+    expiryDate: '2024-06-05T23:59:59Z',
+    discountPercent: 25,
+    barcode: '6789012345678',
+    discountedPrice: 22.49,
   },
 ]; 

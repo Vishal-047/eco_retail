@@ -1,0 +1,44 @@
+{
+  "deals": [
+    {
+      "barcode": "1",
+      "name": "Amul Milk 500ml",
+      "expiryDate": "2025-07-15",
+      "discountPercent": 0,
+      "originalPrice": 30,
+      "image": ""
+    },
+    {
+      "barcode": "3",
+      "name": "Mother Dairy Curd 400g",
+      "expiryDate": "2025-07-12",
+      "discountPercent": 4,
+      "originalPrice": 45,
+      "image": ""
+    },
+    {
+      "barcode": "15",
+      "name": "Sunfeast Pasta",
+      "expiryDate": "2025-08-18",
+      "discountPercent": 15,
+      "originalPrice": 30,
+      "image": ""
+    },
+    {
+      "barcode": "25",
+      "name": "Bisleri Water 1L",
+      "expiryDate": "2025-08-02",
+      "discountPercent": 10,
+      "originalPrice": 20,
+      "image": ""
+    },
+    {
+      "barcode": "30",
+      "name": "Bournvita 500g",
+      "expiryDate": "2025-10-01",
+      "discountPercent": 90,
+      "originalPrice": 220,
+      "image": ""
+    }
+  ]
+}

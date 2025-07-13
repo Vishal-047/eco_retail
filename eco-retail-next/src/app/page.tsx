@@ -29,6 +29,7 @@ import {
 } from '@mui/icons-material';
 import ChatbotWidget from '../components/ChatbotWidget';
 import Link from 'next/link';
+import { products } from '../data/products';
 
 // Removed: import { useRouter } from 'next/navigation'; - This was causing the error.
 
@@ -69,9 +70,9 @@ export default function App() {
       icon: <LocalShipping sx={{ fontSize: 40, color: 'primary.main' }} />,
       title: 'Green Delivery Options',
       description: 'Choose from bike, electric vehicle, or petrol delivery with emission preview.',
-      action: () => console.log('Navigate to /delivery'),
       actionText: 'Calculate Delivery',
       color: '#1976d2',
+      href: '/delivery',
     },
     {
       icon: <Recycling sx={{ fontSize: 40, color: 'primary.main' }} />,
@@ -91,19 +92,20 @@ export default function App() {
     },
     {
       icon: <Visibility sx={{ fontSize: 40, color: 'primary.main' }} />,
-      title: 'Transparent Analytics',
-      description: 'Real-time dashboards showing your carbon footprint and sustainability metrics.',
-      action: () => console.log('Navigate to /dashboard'),
-      actionText: 'View Dashboard',
+      title: 'Smart Deals',
+      description: 'Discover discounted products that help you save money and reduce waste—shop smarter for a more sustainable future!',
+      action: () => console.log('Navigate to /expiry-deals'),
+      actionText: 'View Deals',
       color: '#ff9800',
+      href: '/expiry-deals',
     },
     {
       icon: <Star sx={{ fontSize: 40, color: 'primary.main' }} />,
       title: 'Green Points Rewards',
       description: 'Earn points for sustainable choices and unlock eco-friendly badges.',
-      action: () => console.log('Navigate to /dashboard'),
       actionText: 'Earn Points',
       color: '#f57c00',
+      href: '/dashboard',
     },
   ];
 
@@ -115,7 +117,7 @@ export default function App() {
   ];
 
   // Placeholder function for navigation buttons outside the features array
-  const handleNavigation = (path) => {
+  const handleNavigation = (path: string) => {
     console.log(`Would navigate to: ${path}`);
   };
 
@@ -488,24 +490,7 @@ export default function App() {
           <EcoIcon sx={{ fontSize: 36 }} />
         </Fab>
       </Tooltip>
-      <Tooltip title="Redeem Points" arrow>
-        <Fab
-          color="primary"
-          sx={{
-            position: 'fixed',
-            bottom: 32,
-            right: 112,
-            zIndex: 2000,
-            boxShadow: 6,
-            width: 64,
-            height: 64
-          }}
-          component={Link}
-          href="/dashboard"
-        >
-          💎
-        </Fab>
-      </Tooltip>
+      {/* Removed Redeem Points FAB */}
 
       {/* Chatbot Drawer */}
       <Drawer
