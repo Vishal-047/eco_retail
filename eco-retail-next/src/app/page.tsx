@@ -160,7 +160,7 @@ export default function App() {
                   size="large"
                   sx={{ color: 'white', borderColor: 'white', fontWeight: 'bold', '&:hover': { bgcolor: '#e0f2f1', color: '#388e3c', borderColor: '#388e3c' } }}
                 >
-                  Calculate Emissions
+                  Calculate CO2 Emissions
                 </Button>
                 <Button
                   component={Link}

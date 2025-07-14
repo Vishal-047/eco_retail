@@ -39,6 +39,14 @@
       "discountPercent": 90,
       "originalPrice": 220,
       "image": ""
+    },
+    {
+      "barcode": "46",
+      "name": "India Gate Rice",
+      "expiryDate": "2025-12-12",
+      "discountPercent": 50,
+      "originalPrice": 130,
+      "image": ""
     }
   ]
 }

@@ -124,10 +124,9 @@ const Navbar: React.FC = () => {
 
   const navigationItems = [
     { text: 'Home', path: '/', icon: <Park /> },
-    { text: 'Calculator', path: '/calculator', icon: <Calculate /> },
+    { text: 'CO2 Track', path: '/calculator', icon: <Calculate /> },
     { text: 'Green Delivery', path: '/delivery', icon: <LocalShipping /> },
     { text: 'Suppliers', path: '/suppliers', icon: <Recycling /> },
-    { text: 'News', path: '/news', icon: <TrendingUp /> },
     { text: 'Bulk Analysis', path: '/bulk-analysis', icon: <TrendingUp /> },
     { text: 'Eco Advisor', path: '/chatbot', icon: <SmartToy /> },
   ];
